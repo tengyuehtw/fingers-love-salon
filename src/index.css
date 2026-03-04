@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* 專業沙龍配色方案：高級、柔和、精緻 */
+  --color-primary: #C98A7D;      /* 調整後的精緻粉橘色，作為主強調色 */
+  --color-logo-green: #9DAA9D;   /* 調整後的柔和灰綠色，作為輔助色 */
+  --color-earth-beige: #F5F0EB;  /* 柔和沙色，用於卡片背景 */
+  --color-background-light: #FDFBF8; /* 極淺的暖白，作為全站主背景，減少視覺疲勞 */
+  --color-text-main: #3D3A38;     /* 暖炭色，代替純黑，閱讀更舒適 */
+  
+  --font-display: "Noto Sans TC", sans-serif;
+  --font-serif: "Instrument Serif", serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background-light font-display text-text-main antialiased;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.custom-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='%23C68579' viewBox='0 0 256 256'%3e%3cpath d='M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z'%3e%3c/path%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.5rem;
+}
