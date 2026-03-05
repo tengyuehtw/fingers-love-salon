@@ -28,7 +28,16 @@ export default function Login() {
         password,
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        // 友善化常見錯誤訊息
+        if (authError.message === 'Invalid login credentials') {
+          throw new Error('信箱或密碼錯誤，請確認後再試');
+        }
+        if (authError.message.includes('Email not confirmed')) {
+          throw new Error('請先至信箱收取驗證信，完成驗證後再登入');
+        }
+        throw authError;
+      }
 
       // 登入成功
       addNotification({
@@ -42,12 +51,7 @@ export default function Login() {
       navigate('/member');
     } catch (err: any) {
       console.error('Login failed:', err);
-      // 提供更友善的錯誤訊息
-      if (err.message === 'Invalid login credentials') {
-        setError('信箱或密碼錯誤');
-      } else {
-        setError(err.message || '登入失敗，請稍後再試');
-      }
+      setError(err.message || '登入失敗，請稍後再試');
     } finally {
       setLoading(false);
     }
@@ -122,50 +126,29 @@ export default function Login() {
             {loading ? '登入中...' : '登入'}
           </button>
 
-
           <div className="flex items-center gap-4 py-4">
             <div className="h-[1px] flex-1 bg-logo-green/20"></div>
             <span className="text-xs text-logo-green font-medium px-2">或是</span>
             <div className="h-[1px] flex-1 bg-logo-green/20"></div>
           </div>
 
+          {/* 訪客登入：使用 Supabase 內建的「匿名登入」功能
+              不需要 email/密碼，也不受信箱驗證限制，立刻進入 */}
           <button
             type="button"
             disabled={loading}
             onClick={async () => {
               try {
                 setLoading(true);
-                // Create a random guest email and password
-                const guestId = Math.floor(Math.random() * 1000000);
-                const guestEmail = `guest_${guestId}@fingerslove.com`;
-                const guestPassword = `guest_pass_${guestId}`;
+                setError(null);
 
-                // Register the guest automatically
-                const { error: signUpError } = await supabase.auth.signUp({
-                  email: guestEmail,
-                  password: guestPassword,
-                  options: {
-                    data: {
-                      display_name: `訪客 ${guestId}`,
-                    }
-                  }
-                });
+                const { data, error: anonError } = await supabase.auth.signInAnonymously();
 
-                if (signUpError && signUpError.message !== 'User already registered') {
-                  throw signUpError;
-                }
-
-                // Sign in the guest
-                const { error: signInError } = await supabase.auth.signInWithPassword({
-                  email: guestEmail,
-                  password: guestPassword,
-                });
-
-                if (signInError) throw signInError;
+                if (anonError) throw anonError;
 
                 addNotification({
                   title: '訪客登入成功',
-                  desc: `您已作為訪客 ${guestId} 登入，可體驗完整預約與會員功能。`,
+                  desc: '您已以訪客身份進入，可體驗完整預約功能。',
                   time: '剛剛',
                   type: 'alert',
                   link: '/member'
@@ -173,7 +156,7 @@ export default function Login() {
                 navigate('/member');
               } catch (err: any) {
                 console.error('Guest login failed:', err);
-                setError('訪客登入失敗，請稍後再試');
+                setError(err.message || '訪客登入失敗，請稍後再試');
               } finally {
                 setLoading(false);
               }

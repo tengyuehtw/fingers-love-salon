@@ -23,12 +23,20 @@ export default function Register() {
     });
   };
 
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMsg(null);
 
     if (formData.password !== formData.confirmPassword) {
       setError('兩次輸入的密碼不一致');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('密碼至少需要 6 個字元');
       return;
     }
 
@@ -40,47 +48,46 @@ export default function Register() {
         password: formData.password,
         options: {
           data: {
-            display_name: formData.name, // 這會自動被我們剛才寫的 SQL trigger 裝進 profiles 表裡
+            display_name: formData.name, // 自動觸發 SQL trigger，在 profiles 表建立資料
           }
         }
       });
 
       if (authError) throw authError;
 
-      // 2. 因為我們的 trigger 已經自動幫忙建好 profile 了，
-      // 但我們也可以額外更新 phone 等等欄位 (如果註冊成功且拿到 user)
+      // 2. 更新 phone 欄位（若 trigger 已建好 profile）
       if (data.user) {
-        const { error: profileUpdateError } = await supabase
+        await supabase
           .from('profiles')
           .update({ phone: formData.phone })
           .eq('id', data.user.id);
-
-        if (profileUpdateError) {
-          console.warn('Profile phone update failed:', profileUpdateError);
-        }
       }
 
-      // 成功通知
-      addNotification({
-        title: '註冊成功',
-        desc: '歡迎加入 Fingers love！已為您自動登入。',
-        time: '剛剛',
-        type: 'tip',
-        link: '/member'
-      });
-
-      // 自動登入
-      await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      // 導回會員中心
-      navigate('/member');
+      // 3. 判斷 Supabase 是否啟用了「email 驗證確認」
+      //    若 session 為 null → 表示需要先確認信箱才能登入
+      //    若 session 存在   → 已自動登入，直接導向會員頁
+      if (data.session) {
+        // Supabase 關閉 email confirmation，直接登入成功
+        addNotification({
+          title: '註冊成功',
+          desc: `歡迎加入 Fingers love，${formData.name}！`,
+          time: '剛剛',
+          type: 'tip',
+          link: '/member'
+        });
+        navigate('/member');
+      } else {
+        // Supabase 啟用了 email confirmation，需要驗證信箱
+        setSuccessMsg(`✅ 註冊申請已送出！\n請去「${formData.email}」信箱收取驗證信，點擊信中連結後即可登入。`);
+      }
 
     } catch (err: any) {
       console.error('Registration failed:', err);
-      setError(err.message || '註冊失敗，請稍後再試');
+      if (err.message === 'User already registered') {
+        setError('此信箱已經被註冊過了，請直接登入或使用「忘記密碼」功能');
+      } else {
+        setError(err.message || '註冊失敗，請稍後再試');
+      }
     } finally {
       setLoading(false);
     }
@@ -112,6 +119,19 @@ export default function Register() {
           <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 mb-6 text-sm font-medium flex items-start gap-2">
             <span className="material-symbols-outlined shrink-0 text-red-500">error</span>
             {error}
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl p-4 mb-6 text-sm font-medium space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined shrink-0 text-green-500">mark_email_read</span>
+              <span className="font-bold">請確認您的信箱</span>
+            </div>
+            <p className="whitespace-pre-line ml-8">{successMsg}</p>
+            <div className="ml-8 mt-2">
+              <Link to="/login" className="text-primary font-bold underline underline-offset-2">→ 前往登入頁面</Link>
+            </div>
           </div>
         )}
 
