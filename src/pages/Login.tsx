@@ -16,7 +16,11 @@ export default function Login() {
     e.preventDefault();
     setError(null);
 
-    if (!email || !password) {
+    // 訪客密碼特殊規則
+    const GUEST_PASSWORD = 'Gst!Aa9$kP2#vM8x';
+    const isGuestFlow = password === GUEST_PASSWORD;
+
+    if (!isGuestFlow && (!email || !password)) {
       setError('請輸入信箱與密碼');
       return;
     }
@@ -24,45 +28,45 @@ export default function Login() {
     try {
       setLoading(true);
 
-      // 特殊規則：如果密碼是訪客專用強密碼，且信箱不為空
-      const GUEST_PASSWORD = 'Gst!Aa9$kP2#vM8x';
-      if (password === GUEST_PASSWORD && email.trim() !== '') {
+      const effectiveEmail = (isGuestFlow && !email.trim())
+        ? 'guest_anonymous@fingerlove.com'
+        : email;
+
+      if (isGuestFlow && effectiveEmail) {
         // 先嘗試登入
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
+          email: effectiveEmail,
           password: GUEST_PASSWORD,
         });
 
         if (signInError) {
-          // 如果登入失敗且原因是帳號不存在，則現場幫他建立一個
-          if (signInError.message.includes('Invalid login credentials')) {
-            const { error: signUpError } = await supabase.auth.signUp({
-              email,
-              password: GUEST_PASSWORD,
-              options: {
-                data: {
-                  display_name: '訪客',
-                  is_guest: true,
-                  initial_password: GUEST_PASSWORD
-                }
+          // 如果登入失敗，則現場幫他建立一個
+          const { error: signUpError } = await supabase.auth.signUp({
+            email: effectiveEmail,
+            password: GUEST_PASSWORD,
+            options: {
+              data: {
+                display_name: '訪客',
+                is_guest: true,
+                initial_password: GUEST_PASSWORD
               }
-            });
-            if (signUpError) throw signUpError;
+            }
+          });
+          if (signUpError) throw signUpError;
 
-            // 建立後再次嘗試登入（通常 signUp 會自動建立 session，也可以手動再確認一次）
-            const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-              email,
-              password: GUEST_PASSWORD,
-            });
-            if (retryError) throw retryError;
-          } else {
-            throw signInError;
-          }
+          // 建立後再次嘗試登入
+          const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+            email: effectiveEmail,
+            password: GUEST_PASSWORD,
+          });
+          if (retryError) throw retryError;
         }
 
         addNotification({
           title: '訪客模式進入成功',
-          desc: `歡迎！您目前以 ${email} 登入，請記住密碼以便下次使用。`,
+          desc: effectiveEmail === 'guest_anonymous@fingerlove.com'
+            ? '歡迎！您目前以匿名訪客身份進入。'
+            : `歡迎！您目前以 ${effectiveEmail} 登入。`,
           time: '剛剛',
           type: 'alert',
           link: '/member'
@@ -73,12 +77,11 @@ export default function Login() {
 
       // 一般登入邏輯
       const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
+        email: effectiveEmail,
         password,
       });
 
       if (authError) {
-        // 友善化常見錯誤訊息
         if (authError.message === 'Invalid login credentials') {
           throw new Error('信箱或密碼錯誤，請確認後再試');
         }
@@ -88,7 +91,6 @@ export default function Login() {
         throw authError;
       }
 
-      // 登入成功
       addNotification({
         title: '登入成功',
         desc: '歡迎回來 Fingers love 專業美學沙龍。',
@@ -140,7 +142,7 @@ export default function Login() {
                 className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/60 border-none focus:ring-2 focus:ring-primary/30 text-slate-700 placeholder:text-logo-green/60 shadow-inner transition-all outline-none"
                 placeholder="信箱"
                 type="email"
-                required
+              // required // Removed required for guest login
               />
             </div>
             <div className="relative">
@@ -189,19 +191,15 @@ export default function Login() {
             type="button"
             disabled={loading}
             onClick={() => {
-              // 點擊後：自動填入預設密碼，信箱保留讓使用者自定義（或由使用者手動輸入）
-              // 提示使用者輸入一個自定義信箱
+              // 點擊後：自動填入預設密碼，允許信箱留空
               const GUEST_PASSWORD = 'Gst!Aa9$kP2#vM8x';
               setPassword(GUEST_PASSWORD);
 
-              if (!email) {
-                setError('請在上方信箱欄位隨便輸入一個名稱（例如：yourname@test.com），然後再次點擊此按鈕即可進入！');
-                return;
-              }
-
-              // 如果已有信箱，自動觸發 form submit
-              const form = document.querySelector('form');
-              if (form) form.requestSubmit();
+              // 延遲一點點確保 state 更新或是直接在下一次 tick 觸發
+              setTimeout(() => {
+                const form = document.querySelector('form');
+                if (form) form.requestSubmit();
+              }, 10);
             }}
             className="block w-full py-4 bg-white border-2 border-primary text-primary hover:bg-primary/5 disabled:opacity-50 rounded-2xl font-bold text-lg active:scale-[0.98] transition-all text-center flex items-center justify-center gap-2"
           >
@@ -216,6 +214,6 @@ export default function Login() {
           <Link to="/register" className="text-primary font-bold ml-1">立即註冊</Link>
         </p>
       </div>
-    </div >
+    </div>
   );
 }
