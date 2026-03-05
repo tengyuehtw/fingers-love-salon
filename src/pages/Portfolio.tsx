@@ -33,9 +33,9 @@ export default function Portfolio() {
   };
 
   const filteredWorks = works.filter(w => {
-    const matchCategory = activeCategory === '全部' ? true : 
-                          activeCategory === '已收藏' ? w.liked : 
-                          w.category === activeCategory;
+    const matchCategory = activeCategory === '全部' ? true :
+      activeCategory === '已收藏' ? w.liked :
+        w.category === activeCategory;
     const matchTherapist = activeTherapist === '全部老師' ? true : w.therapist === activeTherapist;
     return matchCategory && matchTherapist;
   });
@@ -86,9 +86,9 @@ export default function Portfolio() {
               onClick={() => setActiveTherapist(therapist)}
               className={cn(
                 "flex h-9 shrink-0 items-center justify-center rounded-full px-5 transition-all duration-300 font-bold text-sm",
-                activeTherapist === therapist 
-                  ? "bg-stone-800 text-white shadow-md" 
-                  : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                activeTherapist === therapist
+                  ? "bg-primary text-white shadow-md shadow-primary/20"
+                  : "bg-primary/10 text-primary/70 hover:bg-primary/20"
               )}
             >
               {therapist}
@@ -104,8 +104,8 @@ export default function Portfolio() {
               onClick={() => setActiveCategory(cat)}
               className={cn(
                 "flex h-9 shrink-0 items-center justify-center rounded-full px-5 transition-all duration-300 font-bold text-sm",
-                activeCategory === cat 
-                  ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                activeCategory === cat
+                  ? "bg-primary text-white shadow-lg shadow-primary/20"
                   : "bg-stone-100 text-stone-600 hover:bg-stone-200"
               )}
             >
@@ -137,17 +137,17 @@ export default function Portfolio() {
                 "overflow-hidden rounded-2xl bg-stone-100 shadow-sm ring-1 ring-black/5 transition-transform duration-500 group-hover:scale-[1.02]",
                 work.aspect
               )}>
-                <img 
-                  alt={work.title} 
-                  className="w-full h-full object-cover" 
-                  src={work.img} 
-                  referrerPolicy="no-referrer" 
+                <img
+                  alt={work.title}
+                  className="w-full h-full object-cover"
+                  src={work.img}
+                  referrerPolicy="no-referrer"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
-              
+
               <div className="absolute top-2 right-2 z-10">
-                <button 
+                <button
                   className={cn(
                     "flex items-center justify-center size-8 rounded-full bg-white/90 shadow-md backdrop-blur-md transition-transform active:scale-90",
                     work.liked ? 'text-primary' : 'text-stone-400'
@@ -185,7 +185,7 @@ export default function Portfolio() {
               onClick={() => setSelectedWork(null)}
               className="absolute inset-0 bg-black/90 backdrop-blur-sm"
             />
-            
+
             <motion.div
               layoutId={`work-${selectedWork.id}`}
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -193,7 +193,7 @@ export default function Portfolio() {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-lg bg-white dark:bg-stone-900 rounded-3xl overflow-hidden shadow-2xl"
             >
-              <button 
+              <button
                 onClick={() => setSelectedWork(null)}
                 className="absolute top-4 right-4 z-50 size-10 flex items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/40 transition-colors"
               >
@@ -202,13 +202,13 @@ export default function Portfolio() {
 
               <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-100 dark:bg-stone-800">
                 <AnimatePresence mode="wait">
-                  <motion.img 
+                  <motion.img
                     key={currentImgIndex}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    src={selectedWork.images[currentImgIndex]} 
-                    alt={selectedWork.title} 
+                    src={selectedWork.images[currentImgIndex]}
+                    alt={selectedWork.title}
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                   />
@@ -217,23 +217,23 @@ export default function Portfolio() {
                 {/* Navigation Arrows */}
                 {selectedWork.images.length > 1 && (
                   <>
-                    <button 
+                    <button
                       onClick={(e) => { e.stopPropagation(); prevImg(); }}
                       className="absolute left-4 top-1/2 -translate-y-1/2 size-10 flex items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/40 transition-colors"
                     >
                       <span className="material-symbols-outlined">chevron_left</span>
                     </button>
-                    <button 
+                    <button
                       onClick={(e) => { e.stopPropagation(); nextImg(); }}
                       className="absolute right-4 top-1/2 -translate-y-1/2 size-10 flex items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-md hover:bg-black/40 transition-colors"
                     >
                       <span className="material-symbols-outlined">chevron_right</span>
                     </button>
-                    
+
                     {/* Dots Indicator */}
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
                       {selectedWork.images.map((_, idx) => (
-                        <div 
+                        <div
                           key={idx}
                           className={cn(
                             "size-1.5 rounded-full transition-all duration-300",
@@ -253,7 +253,7 @@ export default function Portfolio() {
                       <span className="text-xs font-black text-primary uppercase tracking-widest block">
                         {selectedWork.category}
                       </span>
-                      <button 
+                      <button
                         onClick={() => {
                           setSelectedWork(null);
                           navigate(`/team?name=${encodeURIComponent(selectedWork.therapist)}`);
@@ -267,7 +267,7 @@ export default function Portfolio() {
                       {selectedWork.title}
                     </h2>
                   </div>
-                  <button 
+                  <button
                     onClick={() => toggleLike(selectedWork.id)}
                     className={cn(
                       "flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-colors",
@@ -278,19 +278,19 @@ export default function Portfolio() {
                     {selectedWork.liked ? "已收藏" : "收藏作品"}
                   </button>
                 </div>
-                
+
                 <p className="text-stone-500 dark:text-stone-400 text-sm leading-relaxed mb-6">
                   {selectedWork.desc}
                 </p>
 
                 <div className="flex gap-3">
-                  <button 
+                  <button
                     onClick={() => navigate('/booking')}
                     className="flex-1 bg-primary text-white py-4 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 transition-transform active:scale-95"
                   >
                     立即預約同款服務
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleShare(selectedWork)}
                     className="size-12 flex items-center justify-center rounded-2xl border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                   >
@@ -305,7 +305,7 @@ export default function Portfolio() {
 
       {/* Floating Action Button for Portfolio */}
       <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50">
-        <button 
+        <button
           onClick={() => navigate('/booking')}
           className="flex size-16 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/40 border-4 border-background-light dark:border-background-dark transition-transform active:scale-90"
         >

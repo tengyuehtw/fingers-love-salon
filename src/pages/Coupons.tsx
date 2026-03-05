@@ -41,19 +41,19 @@ export default function Coupons() {
     .filter((c): c is NonNullable<typeof c> => c !== null);
 
   return (
-    <div className="p-6 min-h-screen bg-stone-50 dark:bg-stone-900 pb-24">
+    <div className="p-6 min-h-screen bg-earth-beige pb-24">
       <div className="flex items-center gap-3 mb-6">
         <div className="size-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
           <span className="material-symbols-outlined text-2xl">local_activity</span>
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-stone-800 dark:text-stone-100">優惠活動</h1>
-          <p className="text-xs text-stone-500">領取專屬優惠，享受頂級服務</p>
+          <h1 className="text-2xl font-bold text-primary">優惠活動</h1>
+          <p className="text-xs text-logo-green">領取專屬優惠，享受頂級服務</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex p-1 bg-stone-200/50 rounded-xl mb-6">
+      <div className="flex p-1 bg-primary/10 rounded-xl mb-6">
         {[
           { id: 'discover', label: '領取專區' },
           { id: 'wallet', label: '我的票夾' },
@@ -64,23 +64,23 @@ export default function Coupons() {
             onClick={() => setActiveTab(tab.id as TabType)}
             className={cn(
               "flex-1 py-2.5 text-sm font-bold rounded-lg transition-all",
-              activeTab === tab.id 
-                ? "bg-white text-primary shadow-sm" 
-                : "text-stone-500 hover:text-stone-700"
+              activeTab === tab.id
+                ? "bg-primary text-white shadow-sm"
+                : "text-logo-green hover:text-primary"
             )}
           >
             {tab.label}
           </button>
         ))}
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {activeTab === 'discover' && (
           discoverList.length > 0 ? (
             discoverList.map(coupon => (
-              <CouponCard 
-                key={coupon.id} 
-                coupon={coupon} 
+              <CouponCard
+                key={coupon.id}
+                coupon={coupon}
                 isClaimed={false}
                 mode="claim"
               />
@@ -96,9 +96,9 @@ export default function Coupons() {
         {activeTab === 'wallet' && (
           walletList.length > 0 ? (
             walletList.map(coupon => (
-              <CouponCard 
-                key={coupon.id} 
-                coupon={coupon} 
+              <CouponCard
+                key={coupon.id}
+                coupon={coupon}
                 isClaimed={true}
                 mode="use"
               />
@@ -107,7 +107,7 @@ export default function Coupons() {
             <div className="col-span-full text-center py-10 text-stone-400">
               <span className="material-symbols-outlined text-4xl mb-2">confirmation_number</span>
               <p className="text-sm">您的票夾是空的</p>
-              <button 
+              <button
                 onClick={() => setActiveTab('discover')}
                 className="mt-4 text-primary font-bold text-sm hover:underline"
               >
@@ -120,9 +120,9 @@ export default function Coupons() {
         {activeTab === 'history' && (
           historyList.length > 0 ? (
             historyList.map((coupon, idx) => (
-              <CouponCard 
-                key={`${coupon.id}-${idx}`} 
-                coupon={coupon} 
+              <CouponCard
+                key={`${coupon.id}-${idx}`}
+                coupon={coupon}
                 isClaimed={true}
                 mode="display"
                 displayLabel={coupon.isUsed ? '已使用' : '已過期'}

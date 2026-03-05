@@ -132,19 +132,82 @@ export default function Login() {
             <div className="h-[1px] flex-1 bg-logo-green/20"></div>
           </div>
 
-          {/* 訪客登入：使用 Supabase 內建的「匿名登入」功能
-              不需要 email/密碼，也不受信箱驗證限制，立刻進入 */}
+          {/* 訪客登入：三重備援方案
+              方案1: Supabase 匿名登入（需後台開啟 Anonymous Sign-ins）
+              方案2: 固定訪客帳號，直接 signIn（需在 Supabase 預建帳號）
+              方案3: 若帳號不存在，自動 signUp 再 signIn */}
           <button
             type="button"
             disabled={loading}
             onClick={async () => {
+              // 固定訪客帳號資訊（需在 Supabase Auth 後台預建或自動建立）
+              const GUEST_EMAIL = 'guest@fingerslove.com';
+              const GUEST_PASSWORD = 'Gst!Aa9$kP2#vM8x@2025';
+
               try {
                 setLoading(true);
                 setError(null);
 
-                const { data, error: anonError } = await supabase.auth.signInAnonymously();
+                // ============ 方案1：Supabase 匿名登入 ============
+                // 若 Supabase 後台已啟用「Anonymous Sign-ins」，優先使用
+                const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
 
-                if (anonError) throw anonError;
+                if (!anonError && anonData.session) {
+                  // 方案1 成功！
+                  addNotification({
+                    title: '訪客登入成功',
+                    desc: '以匿名訪客身份進入，可體驗完整預約功能。',
+                    time: '剛剛',
+                    type: 'alert',
+                    link: '/member'
+                  });
+                  navigate('/member');
+                  return;
+                }
+
+                // ============ 方案2：固定訪客帳號直接登入 ============
+                const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+                  email: GUEST_EMAIL,
+                  password: GUEST_PASSWORD,
+                });
+
+                if (!signInError && signInData.session) {
+                  // 方案2 成功！
+                  addNotification({
+                    title: '訪客登入成功',
+                    desc: '您已以訪客身份進入，可體驗完整預約功能。',
+                    time: '剛剛',
+                    type: 'alert',
+                    link: '/member'
+                  });
+                  navigate('/member');
+                  return;
+                }
+
+                // ============ 方案3：帳號不存在，自動建立再登入 ============
+                // （只有第一次才會走到這裡）
+                const { error: signUpError } = await supabase.auth.signUp({
+                  email: GUEST_EMAIL,
+                  password: GUEST_PASSWORD,
+                  options: {
+                    data: { display_name: '訪客' }
+                  }
+                });
+
+                if (signUpError && !signUpError.message.includes('already registered')) {
+                  throw new Error('訪客帳號建立失敗：' + signUpError.message);
+                }
+
+                // 建立後立刻登入
+                const { data: finalData, error: finalError } = await supabase.auth.signInWithPassword({
+                  email: GUEST_EMAIL,
+                  password: GUEST_PASSWORD,
+                });
+
+                if (finalError) {
+                  // 如果還是失敗，可能是 email confirmation 要求驗證
+                  throw new Error('訪客登入失敗。請聯繫管理員，或至 Supabase 後台關閉 Email Confirmation。');
+                }
 
                 addNotification({
                   title: '訪客登入成功',
@@ -154,6 +217,7 @@ export default function Login() {
                   link: '/member'
                 });
                 navigate('/member');
+
               } catch (err: any) {
                 console.error('Guest login failed:', err);
                 setError(err.message || '訪客登入失敗，請稍後再試');

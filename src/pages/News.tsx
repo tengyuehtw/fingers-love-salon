@@ -49,13 +49,13 @@ export default function News() {
 
   const filteredArticles = NEWS_ARTICLES.filter(article => {
     const matchesCategory = activeCategory === '全部' || article.category === activeCategory;
-    const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          article.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
   return (
-    <div className="flex flex-col pb-32">
+    <div className="flex flex-col pb-32 bg-earth-beige min-h-screen">
       {/* Header Section */}
       <header className="px-6 pt-6 pb-4">
         <h1 className="text-3xl font-black text-primary dark:text-slate-100 italic">Latest News</h1>
@@ -64,17 +64,17 @@ export default function News() {
 
       {/* Search and Category Tabs */}
       <div className="px-6 mb-6">
-        <input 
+        <input
           type="text"
           placeholder="搜尋消息或保養知識..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-3 rounded-full bg-white dark:bg-slate-800 border border-logo-green/20 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full px-4 py-3 rounded-full bg-white/80 border border-logo-green/20 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-primary"
         />
         <div className="flex gap-4 overflow-x-auto no-scrollbar py-2">
           {categories.map((cat) => (
-            <button 
-              key={cat} 
+            <button
+              key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeCategory === cat ? 'bg-primary text-white shadow-md' : 'bg-white dark:bg-slate-800 text-logo-green border border-logo-green/20'}`}
             >
@@ -88,17 +88,17 @@ export default function News() {
       <main className="px-6 space-y-6">
         {filteredArticles.length > 0 ? (
           filteredArticles.map((article, idx) => (
-            <motion.article 
+            <motion.article
               key={article.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
             >
-              <Link to={`/news/${article.id}`} className="group block bg-white dark:bg-slate-800 rounded-3xl overflow-hidden border border-logo-green/10 shadow-sm hover:shadow-md transition-all">
+              <Link to={`/news/${article.id}`} className="group block bg-white rounded-3xl overflow-hidden border border-logo-green/10 shadow-sm hover:shadow-md transition-all">
                 <div className="relative h-48 overflow-hidden">
-                  <img 
-                    src={article.img} 
-                    alt={article.title} 
+                  <img
+                    src={article.img}
+                    alt={article.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     referrerPolicy="no-referrer"
                   />
@@ -119,10 +119,10 @@ export default function News() {
                       {article.readTime}
                     </span>
                   </div>
-                  <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 leading-tight group-hover:text-primary transition-colors">
+                  <h2 className="text-xl font-bold text-stone-800 leading-tight group-hover:text-primary transition-colors">
                     {article.title}
                   </h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-stone-500 mt-3 line-clamp-2 leading-relaxed">
                     {article.excerpt}
                   </p>
                   <div className="mt-6 flex items-center text-primary text-xs font-black uppercase tracking-widest gap-2">
@@ -134,7 +134,7 @@ export default function News() {
             </motion.article>
           ))
         ) : (
-          <p className="text-center text-slate-500 py-10">找不到相關消息。</p>
+          <p className="text-center text-stone-500 py-10">找不到相關消息。</p>
         )}
       </main>
     </div>

@@ -36,7 +36,7 @@ export default function Booking() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addBooking } = useBookings();
-  
+
   const initialService = React.useMemo(() => {
     const serviceName = searchParams.get('service');
     if (serviceName) {
@@ -82,7 +82,7 @@ export default function Booking() {
       return;
     }
     setIsSubmitting(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       const dateObj = new Date(2026, 2, selectedDate);
@@ -107,13 +107,13 @@ export default function Booking() {
     <div className="flex flex-col min-h-screen bg-background-light pb-32 relative">
       <AnimatePresence>
         {showSuccess && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl"
@@ -123,14 +123,14 @@ export default function Booking() {
               </div>
               <h3 className="text-2xl font-bold text-stone-800 mb-2">預約成功！</h3>
               <p className="text-stone-600 mb-8">
-                我們已收到您的預約<br/>
+                我們已收到您的預約<br />
                 <span className="font-bold text-primary">
                   {selectedDate}日 {selectedTime} - {selectedService.title}
                 </span>
-                <br/>
+                <br />
                 將會有專人與您聯繫確認。
               </p>
-              <button 
+              <button
                 onClick={() => navigate('/')}
                 className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
               >
@@ -143,9 +143,9 @@ export default function Booking() {
 
       {/* Service Selection */}
       <div className="px-4 py-6">
-        <h3 className="text-stone-800 text-lg font-bold mb-4">選擇服務項目</h3>
+        <h3 className="text-primary text-lg font-bold mb-4">選擇服務項目</h3>
         <div className="relative group">
-          <select 
+          <select
             value={selectedService.title}
             onChange={(e) => {
               const service = ALL_SERVICES.find(s => s.title === e.target.value);
@@ -165,11 +165,11 @@ export default function Booking() {
 
       {/* Therapist Selection */}
       <div className="px-4 py-2">
-        <h3 className="text-stone-800 text-lg font-bold mb-4">選擇美療師</h3>
+        <h3 className="text-primary text-lg font-bold mb-4">選擇美療師</h3>
         <div className="flex flex-row gap-4 overflow-x-auto pb-2 no-scrollbar">
           {availableTherapists.map((therapist) => (
-            <button 
-              key={therapist.id} 
+            <button
+              key={therapist.id}
               onClick={() => setSelectedTherapist(therapist)}
               className={`flex flex-col items-center shrink-0 gap-2 transition-all ${selectedTherapist?.id !== therapist.id && 'opacity-60 grayscale'}`}
             >
@@ -184,7 +184,7 @@ export default function Booking() {
 
       {/* Date Selection */}
       <div className="px-4 py-6">
-        <h3 className="text-stone-800 text-lg font-bold mb-4">選擇日期</h3>
+        <h3 className="text-primary text-lg font-bold mb-4">選擇日期</h3>
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-100">
           <div className="flex items-center justify-between mb-4">
             <button className="text-stone-600 hover:bg-stone-100 rounded-full p-1">
@@ -206,8 +206,8 @@ export default function Booking() {
               <div className="flex size-8 mx-auto items-center justify-center rounded-full bg-logo-green shadow-md">4</div>
             </button>
             {[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27].map(d => (
-              <button 
-                key={d} 
+              <button
+                key={d}
                 onClick={() => setSelectedDate(d)}
                 className="h-10 w-full text-sm font-medium relative group"
               >
@@ -222,8 +222,8 @@ export default function Booking() {
 
       {/* Time Selection */}
       <div className="px-4 py-2 mb-20">
-        <h3 className="text-stone-800 text-lg font-bold mb-4">可預約時段</h3>
-        
+        <h3 className="text-primary text-lg font-bold mb-4">可預約時段</h3>
+
         <div className="space-y-6">
           {(['morning', 'afternoon', 'evening'] as const).map(category => {
             const categorySlots = TIME_SLOTS.filter(t => getTimeCategory(t) === category);
@@ -237,13 +237,13 @@ export default function Booking() {
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   {categorySlots.map(t => (
-                    <button 
-                      key={t} 
+                    <button
+                      key={t}
                       onClick={() => setSelectedTime(t)}
                       className={cn(
                         "py-2.5 rounded-xl border text-sm font-medium transition-all active:scale-95",
-                        selectedTime === t 
-                          ? "bg-primary border-primary text-white font-bold shadow-md shadow-primary/20" 
+                        selectedTime === t
+                          ? "bg-primary border-primary text-white font-bold shadow-md shadow-primary/20"
                           : "bg-white border-stone-200 text-stone-600 hover:border-primary hover:text-primary"
                       )}
                     >
@@ -271,7 +271,7 @@ export default function Booking() {
               <p className="text-stone-400 text-[10px]">預估費用</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleConfirmBooking}
             disabled={isSubmitting}
             className={`w-full bg-primary text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/20 hover:brightness-110 transition-all ${isSubmitting && 'opacity-70'}`}

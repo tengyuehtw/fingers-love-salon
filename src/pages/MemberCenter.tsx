@@ -33,7 +33,7 @@ const MEMBERSHIP_LEVELS = [
     name: '晶鑽級',
     threshold: 11,
     nextThreshold: 21,
-    color: 'from-[#F48FB1] to-[#D81B60]', // Updated to Pink/Rose
+    color: 'from-[#C98A7D] to-[#A0564B]', // Rose gold earth tone
     icon: 'diamond',
     desc: '消費滿 11 次晉升。生日當月享有 9 折優惠，及不定期新品試用。'
   },
@@ -42,7 +42,7 @@ const MEMBERSHIP_LEVELS = [
     name: '鑽石級',
     threshold: 21,
     nextThreshold: 29,
-    color: 'from-[#CE93D8] via-[#AB47BC] to-[#8E24AA]', // Updated to Purple/Violet
+    color: 'from-[#8B6F6F] via-[#7B3F3F] to-[#5C2D2D]', // Deep wine earth tone
     icon: 'military_tech',
     desc: '消費滿 21 次晉升。每次消費點數 1.5 倍送，並享有專屬美療師諮詢。'
   },
@@ -237,7 +237,7 @@ export default function MemberCenter() {
   };
 
   return (
-    <div className="flex flex-col px-6 pb-32">
+    <div className="flex flex-col px-6 pb-32 bg-earth-beige min-h-screen">
       {/* Profile Header */}
       <div className="flex items-center justify-between my-6">
         <div className="flex items-center gap-4">
