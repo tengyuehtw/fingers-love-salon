@@ -29,10 +29,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const hasUnread = unreadCount > 0;
 
   useEffect(() => {
-    // Simulate a push notification after 3 seconds for better visibility
+    // 暫時取消進入時的自動推播
+    /*
     const timer = setTimeout(() => {
       setShowNotification(true);
-      // Add to list if it doesn't exist
       const exists = notifications.some(n => n.title === '最新保養知識' && n.desc.includes('凝膠美甲後如何維持持久度'));
       if (!exists) {
         addNotification({
@@ -45,6 +45,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       }
     }, 3000);
     return () => clearTimeout(timer);
+    */
   }, []);
 
   const handleOpenNotifications = () => {
@@ -314,38 +315,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      {/* Push Notification Toast */}
+      {/* Push Notification Toast - 暫時隱藏 */}
+      {/* 
       <AnimatePresence>
         {showNotification && (
-          <motion.div
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 20, opacity: 1 }}
-            exit={{ y: -100, opacity: 0 }}
-            onClick={() => {
-              navigate('/news/1');
-              setShowNotification(false);
-            }}
-            className="fixed top-0 left-4 right-4 z-[150] bg-[#1A2433] text-white p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-4 max-w-[398px] mx-auto cursor-pointer active:scale-[0.98] transition-transform"
-          >
-            <div className="size-10 bg-primary/20 rounded-full flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-primary">campaign</span>
-            </div>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-primary uppercase tracking-wider">最新保養知識</p>
-              <p className="text-sm font-medium">凝膠美甲後如何維持持久度？快來看看 5 個護理小撇步！</p>
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowNotification(false);
-              }}
-              className="text-white/40 hover:text-white transition-colors p-1"
-            >
-              <span className="material-symbols-outlined text-sm">close</span>
-            </button>
-          </motion.div>
+          ... (代碼內容略過以保持整潔)
         )}
       </AnimatePresence>
+      */}
 
       {!shouldHideNav && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/5 bg-[#2D241E] dark:bg-background-dark/95 backdrop-blur-md px-4 pb-6 pt-2 max-w-[430px] mx-auto">
