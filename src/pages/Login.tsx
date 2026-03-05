@@ -23,6 +23,55 @@ export default function Login() {
 
     try {
       setLoading(true);
+
+      // 特殊規則：如果密碼是訪客專用強密碼，且信箱不為空
+      const GUEST_PASSWORD = 'Gst!Aa9$kP2#vM8x';
+      if (password === GUEST_PASSWORD && email.trim() !== '') {
+        // 先嘗試登入
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password: GUEST_PASSWORD,
+        });
+
+        if (signInError) {
+          // 如果登入失敗且原因是帳號不存在，則現場幫他建立一個
+          if (signInError.message.includes('Invalid login credentials')) {
+            const { error: signUpError } = await supabase.auth.signUp({
+              email,
+              password: GUEST_PASSWORD,
+              options: {
+                data: {
+                  display_name: '訪客',
+                  is_guest: true,
+                  initial_password: GUEST_PASSWORD
+                }
+              }
+            });
+            if (signUpError) throw signUpError;
+
+            // 建立後再次嘗試登入（通常 signUp 會自動建立 session，也可以手動再確認一次）
+            const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+              email,
+              password: GUEST_PASSWORD,
+            });
+            if (retryError) throw retryError;
+          } else {
+            throw signInError;
+          }
+        }
+
+        addNotification({
+          title: '訪客模式進入成功',
+          desc: `歡迎！您目前以 ${email} 登入，請記住密碼以便下次使用。`,
+          time: '剛剛',
+          type: 'alert',
+          link: '/member'
+        });
+        navigate('/member');
+        return;
+      }
+
+      // 一般登入邏輯
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -139,91 +188,20 @@ export default function Login() {
           <button
             type="button"
             disabled={loading}
-            onClick={async () => {
-              // 固定訪客帳號資訊（需在 Supabase Auth 後台預建或自動建立）
-              const GUEST_EMAIL = 'guest@fingerslove.com';
-              const GUEST_PASSWORD = 'Gst!Aa9$kP2#vM8x@2025';
+            onClick={() => {
+              // 點擊後：自動填入預設密碼，信箱保留讓使用者自定義（或由使用者手動輸入）
+              // 提示使用者輸入一個自定義信箱
+              const GUEST_PASSWORD = 'Gst!Aa9$kP2#vM8x';
+              setPassword(GUEST_PASSWORD);
 
-              try {
-                setLoading(true);
-                setError(null);
-
-                // ============ 方案1：Supabase 匿名登入 ============
-                // 若 Supabase 後台已啟用「Anonymous Sign-ins」，優先使用
-                const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
-
-                if (!anonError && anonData.session) {
-                  // 方案1 成功！
-                  addNotification({
-                    title: '訪客登入成功',
-                    desc: '以匿名訪客身份進入，可體驗完整預約功能。',
-                    time: '剛剛',
-                    type: 'alert',
-                    link: '/member'
-                  });
-                  navigate('/member');
-                  return;
-                }
-
-                // ============ 方案2：固定訪客帳號直接登入 ============
-                const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-                  email: GUEST_EMAIL,
-                  password: GUEST_PASSWORD,
-                });
-
-                if (!signInError && signInData.session) {
-                  // 方案2 成功！
-                  addNotification({
-                    title: '訪客登入成功',
-                    desc: '您已以訪客身份進入，可體驗完整預約功能。',
-                    time: '剛剛',
-                    type: 'alert',
-                    link: '/member'
-                  });
-                  navigate('/member');
-                  return;
-                }
-
-                // ============ 方案3：帳號不存在，自動建立再登入 ============
-                // （只有第一次才會走到這裡）
-                const { error: signUpError } = await supabase.auth.signUp({
-                  email: GUEST_EMAIL,
-                  password: GUEST_PASSWORD,
-                  options: {
-                    data: { display_name: '訪客' }
-                  }
-                });
-
-                if (signUpError && !signUpError.message.includes('already registered')) {
-                  throw new Error('訪客帳號建立失敗：' + signUpError.message);
-                }
-
-                // 建立後立刻登入
-                const { data: finalData, error: finalError } = await supabase.auth.signInWithPassword({
-                  email: GUEST_EMAIL,
-                  password: GUEST_PASSWORD,
-                });
-
-                if (finalError) {
-                  // 如果還是失敗，可能是 email confirmation 要求驗證
-                  throw new Error('訪客登入失敗。請聯繫管理員，或至 Supabase 後台關閉 Email Confirmation。');
-                }
-
-                addNotification({
-                  title: '訪客登入成功',
-                  desc: '您已以訪客身份進入，可體驗完整預約功能。',
-                  time: '剛剛',
-                  type: 'alert',
-                  link: '/member'
-                });
-                navigate('/member');
-
-              } catch (err: any) {
-                console.error('Guest login failed:', err);
-                setError(err.message || '訪客登入失敗，請稍後再試');
-              } finally {
-                setLoading(false);
+              if (!email) {
+                setError('請在上方信箱欄位隨便輸入一個名稱（例如：yourname@test.com），然後再次點擊此按鈕即可進入！');
+                return;
               }
+
+              // 如果已有信箱，自動觸發 form submit
+              const form = document.querySelector('form');
+              if (form) form.requestSubmit();
             }}
             className="block w-full py-4 bg-white border-2 border-primary text-primary hover:bg-primary/5 disabled:opacity-50 rounded-2xl font-bold text-lg active:scale-[0.98] transition-all text-center flex items-center justify-center gap-2"
           >

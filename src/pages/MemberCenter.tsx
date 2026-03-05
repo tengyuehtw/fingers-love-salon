@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '@/src/lib/utils';
 import { useNotifications } from '../context/NotificationContext';
+import { supabase } from '../lib/supabase';
 import { useCoupons } from '../context/CouponContext';
 import { useBookings } from '../context/BookingContext';
 import { useUser } from '../context/UserContext';
@@ -126,6 +127,22 @@ export default function MemberCenter() {
   const handleSaveProfile = async () => {
     try {
       setIsSavingProfile(true);
+
+      // 1. 更新 Auth 資訊 (如果 email 或密碼有變動)
+      const authUpdates: any = {};
+      if (tempProfile.email && tempProfile.email !== profile.email) {
+        authUpdates.email = tempProfile.email;
+      }
+      if (tempProfile.newPassword) {
+        authUpdates.password = tempProfile.newPassword;
+      }
+
+      if (Object.keys(authUpdates).length > 0) {
+        const { error: authError } = await supabase.auth.updateUser(authUpdates);
+        if (authError) throw authError;
+      }
+
+      // 2. 更新 Profile 資料 (DB)
       await updateProfile({
         display_name: tempProfile.fullName,
         phone: tempProfile.phone,
@@ -133,17 +150,19 @@ export default function MemberCenter() {
 
       setLocalProfile(tempProfile);
       setIsProfileModalOpen(false);
+
       addNotification({
-        title: '個人資料已更新',
-        desc: '您的會員資料已成功同步儲存至系統。',
+        title: authUpdates.email || authUpdates.password ? '帳號資料已更新 (轉正成功)' : '個人資料已更新',
+        desc: authUpdates.email ? `信箱已更新為 ${tempProfile.email}，下次請以此登入。` : '您的會員資料已成功同步儲存至系統。',
         time: '剛剛',
         type: 'tip',
         link: '/member'
       });
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Update failed:', err);
       addNotification({
-        title: '個人資料更新失敗',
-        desc: '無法儲存您的資料，請稍後再試。',
+        title: '更新失敗',
+        desc: err.message || '無法儲存您的資料，請稍後再試。',
         time: '剛剛',
         type: 'alert',
         link: '/member'
@@ -153,16 +172,28 @@ export default function MemberCenter() {
     }
   };
 
-  const handleSecurityRequest = (type: 'email' | 'password', value: string) => {
-    setSecurityRequest({ type, value });
-    addNotification({
-      title: `${type === 'email' ? '信箱' : '密碼'}變更申請已送出`,
-      desc: `您的變更申請已送出，請靜候後台審核。審核通過後下次登入即可生效。`,
-      time: '剛剛',
-      type: 'alert',
-      link: '/member'
-    });
-    setIsSecurityModalOpen(false);
+  const handleSecurityRequest = async (type: 'email' | 'password', value: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({ [type]: value });
+      if (error) throw error;
+
+      addNotification({
+        title: `${type === 'email' ? '信箱' : '密碼'}已更新`,
+        desc: `您的帳號安全資訊已成功更新，${type === 'email' ? '下次登入請使用新信箱。' : '請牢記您的新密碼。'}`,
+        time: '剛剛',
+        type: 'alert',
+        link: '/member'
+      });
+      setIsSecurityModalOpen(false);
+    } catch (err: any) {
+      addNotification({
+        title: '操作失敗',
+        desc: err.message || '更新帳號資訊時出錯，請稍後再試。',
+        time: '剛剛',
+        type: 'alert',
+        link: '/member'
+      });
+    }
   };
 
   const currentLevel = [...MEMBERSHIP_LEVELS].reverse().find(l => consumptionCount >= l.threshold) || MEMBERSHIP_LEVELS[0];
@@ -258,9 +289,14 @@ export default function MemberCenter() {
         <button
           onClick={() => {
             setTempProfile({
-              ...localProfile,
+              nickname: profile?.display_name || '',
               fullName: profile?.display_name || '',
+              gender: '女',
               phone: profile?.phone || '',
+              lineId: '',
+              igId: '',
+              email: profile?.email || '', // 新增
+              newPassword: '' // 新增
             });
             setIsProfileModalOpen(true);
           }}
@@ -663,19 +699,26 @@ export default function MemberCenter() {
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="size-9 bg-stone-100 dark:bg-stone-700 rounded-lg flex items-center justify-center text-stone-500">
+              <div className="size-9 bg-white shadow-sm border border-stone-100 rounded-lg flex items-center justify-center text-stone-500">
                 <span className="material-symbols-outlined text-xl">lock</span>
               </div>
               <div>
                 <p className="text-[10px] text-stone-400 font-bold uppercase">登入密碼</p>
-                <p className="text-xs font-bold text-stone-800 dark:text-stone-100">••••••••</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-bold text-stone-800">
+                    {profile.is_guest ? `${profile.initial_password?.substring(0, 4)}••••` : '••••••••'}
+                  </p>
+                  {profile.is_guest && (
+                    <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold">預設</span>
+                  )}
+                </div>
               </div>
             </div>
             <button
               onClick={() => setIsSecurityModalOpen(true)}
               className="text-[10px] font-bold text-primary hover:underline"
             >
-              申請更改
+              直接更改
             </button>
           </div>
 
@@ -1049,25 +1092,33 @@ export default function MemberCenter() {
               </div>
 
               <div className="overflow-y-auto p-6 space-y-5">
-                {/* Account Info (Read-only) */}
-                <div className="p-4 bg-stone-50 dark:bg-stone-800/50 rounded-2xl border border-stone-100 dark:border-stone-700 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">註冊信箱</span>
-                    <span className="text-xs font-bold text-stone-600 dark:text-stone-300">{profile.email}</span>
+                {/* Account Credentials Section (Now Editable) */}
+                <div className="p-4 bg-earth-beige/40 rounded-2xl border border-primary/10 space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-stone-400 uppercase tracking-widest ml-1">登入信箱 (可用於下次登入)</label>
+                    <input
+                      type="email"
+                      value={tempProfile.email || profile.email}
+                      onChange={(e) => setTempProfile(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="設定您的正式信箱"
+                      className="w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 text-xs font-bold text-stone-800 outline-none focus:border-primary transition-colors"
+                    />
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">登入密碼</span>
-                    <span className="text-xs font-bold text-stone-600 dark:text-stone-300">{profile.password}</span>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-stone-400 uppercase tracking-widest ml-1">重設密碼</label>
+                    <input
+                      type="password"
+                      value={tempProfile.newPassword || ''}
+                      onChange={(e) => setTempProfile(prev => ({ ...prev, newPassword: e.target.value }))}
+                      placeholder="輸入新密碼以取代預設密碼"
+                      className="w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 text-xs font-bold text-stone-800 outline-none focus:border-primary transition-colors"
+                    />
                   </div>
-                  <button
-                    onClick={() => {
-                      setIsProfileModalOpen(false);
-                      setIsSecurityModalOpen(true);
-                    }}
-                    className="w-full mt-2 py-2 text-[10px] font-bold text-primary border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors"
-                  >
-                    申請更改信箱或密碼
-                  </button>
+                  {profile.is_guest && (
+                    <p className="text-[9px] text-primary/70 font-medium px-1 italic">
+                      💡 提示：修改後即可使用新信箱密碼從電腦或其他裝置登入。
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
@@ -1253,7 +1304,7 @@ export default function MemberCenter() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-sm bg-white dark:bg-stone-900 rounded-3xl overflow-hidden shadow-2xl flex flex-col"
+              className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col border border-stone-100"
             >
               <div className="p-6 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center bg-stone-50 dark:bg-stone-800/50">
                 <h3 className="font-bold text-stone-800 dark:text-stone-100">會員條碼</h3>
