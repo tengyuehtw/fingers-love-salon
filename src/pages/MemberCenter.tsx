@@ -251,7 +251,7 @@ export default function MemberCenter() {
             </label>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-stone-800 dark:text-stone-100">{displayName}</h2>
+            <h2 className="text-xl font-bold text-stone-800">{displayName}</h2>
             <p className="text-sm font-bold text-primary">{currentLevel.name}會員</p>
           </div>
         </div>
@@ -264,7 +264,7 @@ export default function MemberCenter() {
             });
             setIsProfileModalOpen(true);
           }}
-          className="size-10 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center text-stone-500 hover:text-primary transition-colors"
+          className="size-10 bg-white/80 rounded-full shadow-sm flex items-center justify-center text-stone-500 hover:text-primary transition-colors border border-stone-100"
         >
           <span className="material-symbols-outlined">settings</span>
         </button>
@@ -386,7 +386,7 @@ export default function MemberCenter() {
                         value={pointsToApply}
                         disabled={pointsStatus === 'pending'}
                         onChange={(e) => setPointsToApply(Number(e.target.value))}
-                        className="bg-white dark:bg-stone-700 border border-stone-200 dark:border-stone-600 rounded-lg text-[10px] px-2 py-1 outline-none focus:border-primary disabled:opacity-50"
+                        className="bg-white border border-primary/20 rounded-lg text-xs font-bold text-stone-800 px-3 py-1.5 outline-none focus:ring-1 focus:ring-primary/30 disabled:opacity-50"
                       >
                         {[1, 2, 3, 4, 5].map(v => (
                           <option key={v} value={v}>{v} 點</option>
