@@ -356,7 +356,7 @@ export default function MemberCenter() {
           </div>
           <span className="text-[10px] text-stone-400">卡號：#8823</span>
         </div>
-        <div className="bg-white/60 dark:bg-stone-800/40 backdrop-blur-sm rounded-2xl p-6 border border-stone-200/50 shadow-sm">
+        <div className="bg-white rounded-2xl p-6 border border-primary/10 shadow-md">
           <div className="grid grid-cols-5 gap-3 mb-6">
             {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className={cn(
@@ -379,7 +379,7 @@ export default function MemberCenter() {
               <div className="space-y-4">
                 {/* Points Application Section (Always visible if stamps < 5) */}
                 {stamps < 5 && (
-                  <div className="space-y-3 p-3 bg-stone-50 dark:bg-stone-800/50 rounded-xl border border-stone-100 dark:border-stone-700">
+                  <div className="space-y-3 p-3 bg-earth-beige/50 rounded-xl border border-primary/5">
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] font-bold text-stone-500">選擇本次消費療程數</p>
                       <select
@@ -727,7 +727,7 @@ export default function MemberCenter() {
                 onClick={() => markAsRead(n.id)}
                 className={cn(
                   "block border rounded-xl p-4 flex gap-3 transition-transform active:scale-[0.98] relative group",
-                  n.unread ? "bg-primary/5 border-primary/10" : "bg-white dark:bg-stone-800/40 border-stone-100 dark:border-stone-800"
+                  n.unread ? "bg-primary/10 border-primary/20" : "bg-white border-stone-100"
                 )}
               >
                 <span className={cn(
@@ -737,8 +737,8 @@ export default function MemberCenter() {
                   {n.type === 'tip' ? 'lightbulb' : n.type === 'alert' ? 'notifications_active' : 'campaign'}
                 </span>
                 <div className="flex-1">
-                  <p className={cn("text-xs font-bold", n.unread ? "text-stone-800 dark:text-stone-100" : "text-stone-500")}>{n.title}</p>
-                  <p className="text-[11px] text-stone-500 mt-0.5">{n.desc}</p>
+                  <p className={cn("text-xs font-bold", n.unread ? "text-stone-800" : "text-stone-500")}>{n.title}</p>
+                  <p className="text-[11px] text-stone-600 mt-0.5">{n.desc}</p>
                   <p className="text-[9px] text-stone-400 mt-1">{n.time}</p>
                 </div>
                 <button
