@@ -63,14 +63,20 @@ export default function Register() {
       // 成功通知
       addNotification({
         title: '註冊成功',
-        desc: '歡迎加入 Fingers love！請確認您的信箱以啟用帳號。',
+        desc: '歡迎加入 Fingers love！已為您自動登入。',
         time: '剛剛',
-        type: 'alert',
-        link: '/login'
+        type: 'tip',
+        link: '/member'
       });
 
-      // 導回登入頁面
-      navigate('/login');
+      // 自動登入
+      await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // 導回會員中心
+      navigate('/member');
 
     } catch (err: any) {
       console.error('Registration failed:', err);
@@ -86,10 +92,10 @@ export default function Register() {
         <Link to="/login" className="text-primary flex size-10 items-center justify-center">
           <span className="material-symbols-outlined text-3xl">chevron_left</span>
         </Link>
-        <div className="flex flex-col items-center">
+        <Link to="/" className="flex flex-col items-center hover:opacity-80 transition-opacity">
           <h1 className="text-primary text-xl font-bold tracking-widest uppercase font-serif italic">Fingers love</h1>
           <span className="text-[10px] text-logo-green font-bold tracking-[0.2em] -mt-1">USER REGISTRATION</span>
-        </div>
+        </Link>
         <div className="w-10"></div>
       </header>
 
@@ -191,7 +197,7 @@ export default function Register() {
           <div className="bg-white/40 border border-primary/20 rounded-xl p-4 flex gap-3 mt-8">
             <span className="material-symbols-outlined text-primary shrink-0">info</span>
             <p className="text-sm text-primary/80 leading-relaxed font-medium">
-              註冊後需經確認信件方可啟用服務。
+              為了提供最好的服務體驗，請務必填寫真實姓名與手機號碼。
             </p>
           </div>
 

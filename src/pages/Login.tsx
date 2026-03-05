@@ -57,15 +57,17 @@ export default function Login() {
     <div className="flex flex-col items-center justify-between p-8 min-h-screen bg-earth-beige">
       <div className="w-full max-w-sm flex flex-col items-center mt-12">
         <div className="flex flex-col items-center mb-16">
-          <div className="size-24 rounded-full border-2 border-logo-green flex items-center justify-center mb-4 bg-white/30 backdrop-blur-sm">
-            <div className="text-center">
-              <h1 className="text-primary text-2xl font-bold tracking-tighter leading-none font-serif italic">Fingers</h1>
-              <h1 className="text-primary text-2xl font-bold tracking-tighter leading-none -mt-1 font-serif italic">love</h1>
+          <Link to="/" className="group flex flex-col items-center hover:scale-105 transition-transform">
+            <div className="size-24 rounded-full border-2 border-logo-green flex items-center justify-center mb-4 bg-white/30 backdrop-blur-sm group-hover:bg-white/50 transition-colors">
+              <div className="text-center">
+                <h1 className="text-primary text-2xl font-bold tracking-tighter leading-none font-serif italic">Fingers</h1>
+                <h1 className="text-primary text-2xl font-bold tracking-tighter leading-none -mt-1 font-serif italic">love</h1>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-xs text-logo-green font-bold tracking-[0.3em] uppercase">Professional Salon</span>
-          </div>
+            <div className="flex flex-col items-center">
+              <span className="text-xs text-logo-green font-bold tracking-[0.3em] uppercase group-hover:text-primary transition-colors">Professional Salon</span>
+            </div>
+          </Link>
         </div>
 
         {error && (
@@ -123,21 +125,64 @@ export default function Login() {
 
           <div className="flex items-center gap-4 py-4">
             <div className="h-[1px] flex-1 bg-logo-green/20"></div>
-            <span className="text-xs text-logo-green font-medium">快速登入</span>
+            <span className="text-xs text-logo-green font-medium px-2">或是</span>
             <div className="h-[1px] flex-1 bg-logo-green/20"></div>
           </div>
 
-          <div className="flex justify-center gap-6">
-            {[
-              { alt: "FB", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuC9fokXumftRkK0Eq5yUoX7t1x17opZyOYiWzSyyemvTveH6extOp091ggwGqn843OYgtI5P9SVJIy71ltrEjlgJo3GaVewKAHO2Orq2ithd4BRh5mvYZ-Yosk7DcGYY7FVx2mPPfJr8hU5wE7uAYlo7KfArP_fZIM93y8EmyC4OloiEznL4hPlOvKM6s33ywn-a5IVuGCZIPGbUNXHi5wKMYhet7OajWU-xUsz-_V5uvcHbyh-xmXJYkSTRfqOrffnozlGnXkO2Ho" },
-              { alt: "Google", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCwEPUQHcrdfI1Aw15JyF61OlO8i_FXlgFd_HDkggw_R-nALDpEltQSwu-MLTakENLnVmBSzZtw-P4xpLEN7PjFsvxThkD_tQiYfxyp42X7eoS5YZvLMY9zPqxR-pWVrsXk7g3bc9AkLyyQerWcUeED5b1rnPpiY-px0Hk5_J9VWlxvSiWDYps6EAfC4PBD0Eh6F_CjvwVZQWpvMeAZKlNFBX1HR3CpllnxfKnpIjl0dbWCawDHwyFGGnCy8LdzEjaayLyFwMbq2ok" },
-              { alt: "Apple", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCtGyYnyk2yIsC8e9086DKAlpqe518bgy4aeEBCiqdudy5UWZ9cjyQjZ3wEz_aO2kj0W8J2_wDJ2MnRJ_wm8XeUjmBUfVdM5G7UsC9_M31sEN-VDO5l_Ha2PHyRdC1yHQWhkzf-dCXoHBLOevVJlXSwMeKoqDrz3g542jX8ZH22wVkhJqvvDb8gN0wySlPjY49dIn08dgV5BUQsJhLZhbuNljKq9ZoeAZ8jq7N2RByWl6uySENXh6V5o4QRKrvIEChKy1WtRI4CLLw" }
-            ].map((social, idx) => (
-              <button key={idx} className="size-12 rounded-full bg-white flex items-center justify-center shadow-sm border border-logo-green/10">
-                <img alt={social.alt} className="size-6 object-contain" src={social.img} referrerPolicy="no-referrer" />
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={async () => {
+              try {
+                setLoading(true);
+                // Create a random guest email and password
+                const guestId = Math.floor(Math.random() * 1000000);
+                const guestEmail = `guest_${guestId}@fingerslove.com`;
+                const guestPassword = `guest_pass_${guestId}`;
+
+                // Register the guest automatically
+                const { error: signUpError } = await supabase.auth.signUp({
+                  email: guestEmail,
+                  password: guestPassword,
+                  options: {
+                    data: {
+                      display_name: `訪客 ${guestId}`,
+                    }
+                  }
+                });
+
+                if (signUpError && signUpError.message !== 'User already registered') {
+                  throw signUpError;
+                }
+
+                // Sign in the guest
+                const { error: signInError } = await supabase.auth.signInWithPassword({
+                  email: guestEmail,
+                  password: guestPassword,
+                });
+
+                if (signInError) throw signInError;
+
+                addNotification({
+                  title: '訪客登入成功',
+                  desc: `您已作為訪客 ${guestId} 登入，可體驗完整預約與會員功能。`,
+                  time: '剛剛',
+                  type: 'alert',
+                  link: '/member'
+                });
+                navigate('/member');
+              } catch (err: any) {
+                console.error('Guest login failed:', err);
+                setError('訪客登入失敗，請稍後再試');
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className="block w-full py-4 bg-white border-2 border-primary text-primary hover:bg-primary/5 disabled:opacity-50 rounded-2xl font-bold text-lg active:scale-[0.98] transition-all text-center flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined">explore</span>
+            訪客快速體驗
+          </button>
         </form>
       </div>
       <div className="mt-auto pt-10 pb-4 text-center">
